@@ -1,17 +1,36 @@
 # Live Debugger Demo
 
 ## How to run the project
+
 ### Locally
+
 ```bash
 ./mvnw spring-boot:run
 ```
 
 ### Package the project
+
 ```bash
 ./mvnw clean package
 ```
 
+## How to create load?
+
+In the `load-generator` folder, you can run:
+
+```bash
+sbt Gatling/test
+```
+
+You can configure the following values:
+
+| Environment values | Default                     | Description                               |
+|--------------------|-----------------------------|-------------------------------------------|
+| TEST_DURATION      | 1                           | How long should the test run (in minutes) |                                       |
+| TARGET_SERVER      | demo.funky-functor.com:8080 | Server to call for the test               |
+
 ## Samples
+
 <details>
 
 ### Sample of working CURL
@@ -28,6 +47,7 @@ curl --location 'http://localhost:8080/withdraw' \
 ```
 
 ### Sample of not enough money on the account
+
 We need to run this command 3 times to make sure there is not enough money on the account.
 
 ```bash
@@ -62,4 +82,5 @@ curl --location 'http://localhost:8080/withdraw' \
     "amount": -2147483648
 }'
 ```
+
 </details>

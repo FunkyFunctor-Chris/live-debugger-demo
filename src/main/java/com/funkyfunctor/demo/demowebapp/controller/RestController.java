@@ -8,6 +8,7 @@ import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -19,7 +20,7 @@ import io.vavr.control.Try;
 
 @org.springframework.web.bind.annotation.RestController
 public class RestController {
-    private final Logger logger = LoggerFactory.getLogger(RestController.class);
+    private final static Logger logger = LoggerFactory.getLogger(RestController.class);
 
     int THRESHOLD = 10_000_000; //Value in cents - if the transaction is more than $100 000 dollars, we should be suspicious
     Map<String, Long> accounts = Collections.synchronizedMap(new HashMap<>());
@@ -34,6 +35,7 @@ public class RestController {
      */
     @PostMapping("/withdraw")
     public ResponseEntity<WithdrawalResult> withdrawEndpoint(@RequestBody WithdrawalTransaction withdrawalTransaction) {
+        //logger.info("Received withdrawal transaction for {} cents (account {})", withdrawalTransaction.amount(), withdrawalTransaction.accountId());
         val result = handleWithdrawal(withdrawalTransaction.accountId(), withdrawalTransaction.amount());
 
         if (result.isSuccess()) {
@@ -54,6 +56,12 @@ public class RestController {
                 return ResponseEntity.status(500).body(new WithdrawalResult(withdrawalTransaction.accountId(), 0, false));
             }
         }
+    }
+
+    @GetMapping("/reset")
+    public void resetAccounts() {
+        logger.info("Accounts reset");
+        accounts.clear();
     }
 
     /**
