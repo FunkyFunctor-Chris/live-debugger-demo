@@ -1,5 +1,7 @@
 package com.funkyfunctor.demo.demowebapp.controller;
 
+import com.funkyfunctor.demo.WithdrawalFraudProcessor;
+import com.funkyfunctor.demo.demowebapp.FraudProcessor;
 import com.funkyfunctor.demo.demowebapp.WithdrawalTransaction;
 import com.funkyfunctor.demo.demowebapp.exceptions.NotEnoughFundsException;
 import com.funkyfunctor.demo.demowebapp.exceptions.SuspiciousAmountException;
@@ -21,8 +23,9 @@ import io.vavr.control.Try;
 @org.springframework.web.bind.annotation.RestController
 public class RestController {
     private final static Logger logger = LoggerFactory.getLogger(RestController.class);
+    
+    private static final FraudProcessor withdrawalFraudProcessor = new WithdrawalFraudProcessor();
 
-    int THRESHOLD = 10_000_000; //Value in cents - if the transaction is more than $100 000 dollars, we should be suspicious
     Map<String, Long> accounts = Collections.synchronizedMap(new HashMap<>());
 
     /**
@@ -77,24 +80,13 @@ public class RestController {
         return Try.of(() -> {
             val amount = Math.abs(rawAmount); //We want to make sure we are not dealing with negative amounts
 
-            if (isSuspiciousAmount(amount)) {
+            if (withdrawalFraudProcessor.isSuspiciousAmount(amount)) {
                 throw new SuspiciousAmountException(accountId, amount);
             }
 
             //We process the transaction
             return processWithdrawal(accountId, amount);
         });
-    }
-
-    /**
-     * This method checks if the amount is suspicious.
-     * In this case, we consider an amount suspicious if it is greater than 1 million dollars.
-     *
-     * @param amount The amount to check
-     * @return true if the amount is suspicious, false otherwise
-     */
-    private boolean isSuspiciousAmount(int amount) {
-        return amount > THRESHOLD;
     }
 
     /**
@@ -130,6 +122,6 @@ public class RestController {
      * @return The available amount on the account
      */
     private long getAvailableAmountOnAccount(String accountId) {
-        return accounts.getOrDefault(accountId, THRESHOLD * 2L);
+        return accounts.getOrDefault(accountId, withdrawalFraudProcessor.THRESHOLD() * 2L);
     }
 }
