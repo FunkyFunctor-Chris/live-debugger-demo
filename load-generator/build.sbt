@@ -3,8 +3,15 @@ enablePlugins(GatlingPlugin)
 scalaVersion := "2.13.16"
 
 scalacOptions := Seq(
-  "-encoding", "UTF-8", "-release:8", "-deprecation",
-  "-feature", "-unchecked", "-language:implicitConversions", "-language:postfixOps")
+  "-encoding",
+  "UTF-8",
+  "-release:8",
+  "-deprecation",
+  "-feature",
+  "-unchecked",
+  "-language:implicitConversions",
+  "-language:postfixOps"
+)
 
 val gatlingVersion = "3.13.5"
 val circeVersion = "0.14.12"
