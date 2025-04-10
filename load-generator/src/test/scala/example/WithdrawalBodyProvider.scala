@@ -26,10 +26,16 @@ object WithdrawalBodyProvider {
     val USERS: Seq[String] =
       List.fill(MAX_NB_USERS)(LoremIpsum.getInstance().getName)
 
-    override def body(): String = WithdrawalRequest(
-      USERS(Random.nextInt(MAX_NB_USERS)),
-      Random.nextInt(900) + 100
-    ).asJson.noSpaces
+    override def body(): String = {
+      val amount = Some(Random.nextInt(900) + 100)
+        .map(a => if (Random.nextInt(10) == 0) -1 * a else a)
+        .get
+
+      WithdrawalRequest(
+        USERS(Random.nextInt(MAX_NB_USERS)),
+        amount
+      ).asJson.noSpaces
+    }
   }
 
   object HackerProvider extends WithdrawalBodyProvider {
