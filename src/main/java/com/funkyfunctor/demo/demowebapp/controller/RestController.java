@@ -6,11 +6,11 @@ import com.funkyfunctor.demo.demowebapp.WithdrawalTransaction;
 import com.funkyfunctor.demo.demowebapp.exceptions.NotEnoughFundsException;
 import com.funkyfunctor.demo.demowebapp.exceptions.SuspiciousAmountException;
 import com.funkyfunctor.demo.demowebapp.records.WithdrawalResult;
-import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -23,7 +23,7 @@ import io.vavr.control.Try;
 @org.springframework.web.bind.annotation.RestController
 public class RestController {
     private final static Logger logger = LoggerFactory.getLogger(RestController.class);
-    
+
     private static final FraudProcessor withdrawalFraudProcessor = new WithdrawalFraudProcessor();
 
     Map<String, Long> accounts = Collections.synchronizedMap(new HashMap<>());
@@ -38,14 +38,13 @@ public class RestController {
      */
     @PostMapping("/withdraw")
     public ResponseEntity<WithdrawalResult> withdrawEndpoint(@RequestBody WithdrawalTransaction withdrawalTransaction) {
-        //logger.info("Received withdrawal transaction for {} cents (account {})", withdrawalTransaction.amount(), withdrawalTransaction.accountId());
-        val result = handleWithdrawal(withdrawalTransaction.accountId(), withdrawalTransaction.amount());
+        Try<WithdrawalResult> result = handleWithdrawal(withdrawalTransaction.accountId(), withdrawalTransaction.amount());
 
         if (result.isSuccess()) {
             logger.info("Withdrawal of {} cents from account {} was successful", withdrawalTransaction.amount(), withdrawalTransaction.accountId());
             return ResponseEntity.ok(result.get());
         } else {
-            val exception = result.getCause();
+            Throwable exception = result.getCause();
             if (exception instanceof NotEnoughFundsException) {
                 logger.warn("Withdrawal of {} cents from account {} failed due to insufficient funds", withdrawalTransaction.amount(), withdrawalTransaction.accountId());
                 return ResponseEntity.status(402) //HTTP Code for Payment Required
@@ -67,6 +66,22 @@ public class RestController {
         accounts.clear();
     }
 
+    @GetMapping("/long-running")
+    public void longRunningRequest() {
+        longRunningRequest(10); //10 seconds
+    }
+
+    @GetMapping("/long-running/{duration}")
+    public void longRunningRequest(@PathVariable long duration) {
+        Try<Void> result = Try.run(() -> Thread.sleep(duration * 1000));
+
+        if (result.isSuccess()) {
+            logger.debug("A long running request for {} seconds was successfully completed", duration);
+        } else {
+            logger.error("A long running request was interrupted");
+        }
+    }
+
     /**
      * This method handles the withdrawal transaction.
      * It checks if the amount is suspicious and if there are enough funds in the account.
@@ -78,7 +93,7 @@ public class RestController {
      */
     private Try<WithdrawalResult> handleWithdrawal(String accountId, int rawAmount) {
         return Try.of(() -> {
-            val amount = Math.abs(rawAmount); //We want to make sure we are not dealing with negative amounts
+            int amount = Math.abs(rawAmount); //We want to make sure we are not dealing with negative amounts
 
             if (withdrawalFraudProcessor.isSuspiciousAmount(amount)) {
                 throw new SuspiciousAmountException(accountId, amount);
@@ -99,7 +114,7 @@ public class RestController {
      */
     private WithdrawalResult processWithdrawal(String accountId, int amount) {
         //We retrieve the account
-        val availableAmount = getAvailableAmountOnAccount(accountId);
+        long availableAmount = getAvailableAmountOnAccount(accountId);
 
         //We check there is enough money in the account
         if (availableAmount < amount) {
@@ -107,7 +122,7 @@ public class RestController {
         } else {
 
             //We do the transaction
-            val newAmount = availableAmount - amount;
+            long newAmount = availableAmount - amount;
             accounts.put(accountId, newAmount);
 
             return new WithdrawalResult(accountId, newAmount, true);

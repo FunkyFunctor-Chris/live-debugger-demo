@@ -24,10 +24,11 @@ sbt Gatling/test
 
 You can configure the following values:
 
-| Environment values | Default                     | Description                               |
-|--------------------|-----------------------------|-------------------------------------------|
-| TEST_DURATION      | 1                           | How long should the test run (in minutes) |                                       |
-| TARGET_SERVER      | demo.funky-functor.com:8080 | Server to call for the test               |
+| Environment values  | Default                     | Description                                    |
+|---------------------|-----------------------------|------------------------------------------------|
+| TEST_DURATION       | 1                           | How long should the test run (in minutes)      |                                       |
+| TARGET_SERVER       | demo.funky-functor.com:8080 | Server to call for the test                    |
+| LR_QUERIES_DURATION | 10                          | Number of seconds for the long running queries |
 
 ## Samples
 

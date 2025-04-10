@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.funkyfunctor.demo</groupId>
-    <artifactId>demo-webapp</artifactId>
+    <artifactId>live-debugger-demo-webapp</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>demo-webapp</name>
-    <description>demo-webapp</description>
+    <name>live-debugger-demo-webapp</name>
+    <description>live-debugger-demo-webapp</description>
     <url/>
     <licenses>
         <license/>
